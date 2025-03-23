@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 // supabase connection
-const supabase = supabaseClient.createClient({
+const supabase = createClient({
   apiKey: process.env.SUPABASE_KEY,
   project: 'https://txgfvqffljglhgfwrwxn.supabase.co'
 });

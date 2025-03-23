@@ -1,7 +1,3 @@
-// import { Toaster } from "@/components/ui/toaster";
-// import { Toaster as Sonner } from "@/components/ui/sonner";
-// import { TooltipProvider } from "@/components/ui/tooltip";
-// import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -12,8 +8,8 @@ import Home from "./pages/Home";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = (children) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+const ProtectedRoute = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(null); // Start with null to avoid premature redirects
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -29,12 +25,11 @@ const ProtectedRoute = (children) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (isAuthenticated === null) {
-    return <div>Loading...</div>;
-  }
+  if (isAuthenticated === null) return null; // Prevent rendering until authentication state is confirmed
 
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
+
 
 function App() {
 
