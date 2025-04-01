@@ -1,6 +1,7 @@
 import { Home, BookOpen, Briefcase, Activity, Bookmark, Users, Settings, LogOut } from "lucide-react";
+import { supabase } from "../integrations/supabase/client";
 
-const Sidebar = ({ selected, setSelected }) => {
+const Sidebar = ({ selected, setSelected, buffer=false }) => {
 
     const menuItems = [
         { id: "home", label: "Home", icon: <Home size={20} /> },
@@ -20,10 +21,10 @@ const Sidebar = ({ selected, setSelected }) => {
     }
 
     return (
-        <div className="w-64 bg-white border-r min-h-screen flex flex-col items-spread gap-4 py-8 rounded-r-lg">
-            <div className="flex gap-2 items-center justify-center">
-                <img className="w-10" src='/elevated_logo.png' alt='logo'></img>
-                <p className="text-3xl font-bold text-green-full">Elevat.ed</p>
+        <div className={`w-fit bg-white min-h-screen flex flex-col items-spread gap-4 py-8 rounded-r-lg ${!buffer?'fixed z-10':'opacity-0'}`}>
+            <div className="flex gap-2 items-center justify-center px-4">
+                <img className="w-8" src='/elevated_logo.png' alt='logo'></img>
+                <p className="text-2xl font-bold text-green-full">Elevat.ed</p>
             </div>
 
             <img src='profile.png' className="w-16 mx-auto"></img>
@@ -32,7 +33,7 @@ const Sidebar = ({ selected, setSelected }) => {
                 {menuItems.map((item) => (
                 <div
                     key={item.id}
-                    className={`flex items-center gap-3 w-full pl-12 p-3 cursor-pointer hover:bg-blue-light transition-all ${
+                    className={`flex items-center gap-3 w-full pl-8 p-3 cursor-pointer hover:bg-blue-light transition-all ${
                     selected === item.id ? "bg-blue-light text-blue-full border-l-4 border-blue-full" : "text-gray-600"
                     }`}
                     onClick={() => setSelected(item.id)}>
@@ -42,7 +43,7 @@ const Sidebar = ({ selected, setSelected }) => {
                 ))}
             </nav>
 
-            <div className="flex items-center gap-3 p-3 pl-12 rounded-lg cursor-pointer text-red-500 hover:bg-red-100 mt-auto"
+            <div className="flex items-center gap-3 p-3 pl-8 rounded-lg cursor-pointer text-red-500 hover:bg-red-100 mt-auto"
                 onClick={signOut}>
                 <LogOut size={20} />
                 <span>Sign Out</span>

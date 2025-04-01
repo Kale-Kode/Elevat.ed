@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 import Dashboard from "./pages/Dashboard";
+import MentorDashboard from "./pages/MentorDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import CasAdvisorDashboard from "./pages/CasAdvisorDashboard";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 
@@ -42,10 +45,34 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route
-                path="/dashboard"
+                path="/student"
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mentor"
+                element={
+                  <ProtectedRoute>
+                    <MentorDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cas-advisor"
+                element={
+                  <ProtectedRoute>
+                    <CasAdvisorDashboard />
                   </ProtectedRoute>
                 }
               />
