@@ -51,13 +51,13 @@ const Home = () => {
     }
 
   return (
-    <div className='flex gap-4 overflow-auto scrollbar-hide min-h-screen'>
+    <div className='flex gap-4 min-h-screen'>
         <div className="flex flex-col text-green-dark">
             <p className='text-sm font-medium text-green-med-dark'>Hi User</p>
             <h1 className="text-4xl font-bold mb-12">Welcome back,</h1>
 
             {/* Bento grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5">
 
                 {/* CAS Hours and Task Completed */}
                 <BentoBoxSmall upperText={"CAS hours this week"} lowerTextStat={"9.7"} lowerTextSub={"hours"} rightIcon={'/clock.png'}/>
@@ -66,7 +66,7 @@ const Home = () => {
                 <BentoBoxSmall upperText={"Project Cycle"} lowerTextStat={"10%"} lowerTextSub={"complete"} rightIcon={'/graph_curve.png'} hasGradient={true}/>
         
                 {/* Opportunity Tracker */}
-                <BentoBoxLarge smallHeading={"Opportunity Tracker"} heading={"Explore New Paths"} subtext={<span><p>🚪 3 New Internships Match your interests</p><p>🎯 2 Applications In Progress</p><p>⏳ 1 Pending Interview</p></span>} button={<button className="mt-4 bg-green-full text-white py-2 px-6 rounded-full">Explore Opportunities</button>} image={'/trackr_screenshot.png'} />
+                <BentoBoxLarge smallHeading={"Opportunity Tracker"} heading={"Explore New Paths"} subtext={<span>🚪 3 New Internships Match your interests<br />🎯 2 Applications In Progress<br />⏳ 1 Pending Interview</span>} button={<button className="mt-4 bg-green-full text-white py-2 px-6 rounded-full">Explore Opportunities</button>} image={'/trackr_screenshot.png'} />
         
                 {/* CAS progress */}
                 <BentoBoxMedium variant={<div className='relative flex flex-col h-full'>
@@ -102,27 +102,6 @@ const Home = () => {
             </div>
         </div>
         
-        {/* Project Cycle */}
-        <div className="bg-white p-4 rounded-lg shadow col-span-1 md:col-span-2 lg:col-span-1">
-            <h2 className="text-lg font-semibold">Project Cycle</h2>
-            <div className="mt-2">
-                <p>Training Phase</p>
-                <ul className="list-disc pl-5">
-                <li>Week 1</li>
-                <li>Week 2</li>
-                <li>Week 3</li>
-                <li>Week 4</li>
-                </ul>
-                <p>Project Phase</p>
-                <ul className="list-disc pl-5">
-                <li>Create a team</li>
-                <li>Begin your project</li>
-                <li>Mid-term presentation</li>
-                <li>Final presentation</li>
-                <li>Final report</li>
-                </ul>
-            </div>
-        </div>
     </div>
   )
 }

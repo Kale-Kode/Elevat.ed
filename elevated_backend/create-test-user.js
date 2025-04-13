@@ -12,23 +12,22 @@ async function createTestUser() {
     const email = 'testuser@example.com';
     const password = 'qWiEan821n_12ujAc';
 
-    // Delete existing test  user
-    const { delete_data, delete_error } = await supabaseAdmin.auth.admin.deleteUser('9bb60364-f879-4f69-895c-3b7effe1e2ad');
-    if (delete_error) {
-    console.error('Error deleting user:', delete_error);
-    } else {
-    console.log('User deleted successfully:', delete_data);
-    }
-    const { delete_User_data, delete_User_error } = await supabaseAdmin
-    .from('Users') // specify the table name
-    .delete()
-    .eq('profile_id', '1');
-
-    if (delete_User_error) {
-        console.error('Error deleting from users table:', delete_User_error);
-    } else {
-        console.log('Profile deleted successfully:', delete_User_data);
-    }
+    // // Delete existing test user
+    // const { delete_data, delete_error } = await supabaseAdmin.auth.admin.deleteUser('9bb60364-f879-4f69-895c-3b7effe1e2ad');
+    // if (delete_error) {
+    // console.error('Error deleting user:', delete_error);
+    // } else {
+    // console.log('User deleted successfully:', delete_data);
+    // }
+    // const { delete_User_data, delete_User_error } = await supabaseAdmin
+    // .from('Users') // specify the table name
+    // .delete()
+    // .eq('profile_id', '1');
+    // if (delete_User_error) {
+    //     console.error('Error deleting from users table:', delete_User_error);
+    // } else {
+    //     console.log('Profile deleted successfully:', delete_User_data);
+    // }
 
     // Create a new user in Auth.users
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
@@ -50,9 +49,8 @@ async function createTestUser() {
         return;
     }
     console.log('new id: ', newUserId);
-    // Insert a corresponding row into your custom "users" table.
-    // Note: If your table uses a default value for profile_id (e.g., via uuid_generate_v4()),
-    // you only need to insert the user_id and any additional custom fields.
+
+    // Insert a corresponding row into Users table.
     const { data: profileData, error: profileError } = await supabaseAdmin
     .from('Users')
     .insert([
@@ -63,11 +61,37 @@ async function createTestUser() {
     created_at: new Date()
     },
     ]);
-
     if (profileError) {
         console.error('Error inserting into custom users table:', profileError);
     } else {
         console.log('User profile created successfully:', profileData);
+    }
+
+    // get profile_id from new User record
+    const { data: profileIdData, error: profileIdError } = await supabase
+          .from("Users")
+          .select("profile_id")
+          .eq("user_id", newUserId)
+          .single();
+        // error handling
+        if (profileIdError) {
+            console.error('Error fetching profile_id from Users table into custom users table:', profileIdError);
+        } else {
+          console.log('User profile_id fetched successfully:', profileIdData);
+        }
+
+    // Insert a corresponding row into CAS_progress table.
+    const { data: casProgressData, error: casProgressError } = await supabaseAdmin
+    .from('CAS_progress')
+    .insert([   
+    {
+    profile_id: profileIdData.profile_id,
+    },
+    ]);
+    if (casProgressError) {
+        console.error('Error inserting into custom users table:', casProgressError);
+    } else {
+        console.log('User profile created successfully:', casProgressData);
     }
 
 }

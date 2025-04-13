@@ -3,6 +3,7 @@ import Alert from "@mui/material/Alert";
 import { supabase } from "../integrations/supabase/client"; // Supabase client
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/sidebar';
+import ProfileSidebar from '../components/profileSidebar';
 import Home from '../components/screens/home';
 import Cas from '../components/screens/cas'
 import Opportunities from '../components/screens/opportunities';
@@ -67,14 +68,15 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex w-screen h-screen">
+    <div className="grid grid-cols-10 w-screen h-screen relative">
 
       <Sidebar selected={selected} setSelected={setSelected}/>
-      <Sidebar selected={selected} setSelected={setSelected} buffer={true}/>
       
-      <div className='w-full h-full px-12 py-8'>
+      <div className='col-span-7 flex justify-start items-start w-full h-full p-10'>
         {renderView()}
       </div>
+
+      <ProfileSidebar />
         
     </div>
   ) 

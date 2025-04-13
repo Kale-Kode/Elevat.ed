@@ -21,13 +21,11 @@ const Sidebar = ({ selected, setSelected, buffer=false }) => {
     }
 
     return (
-        <div className={`w-fit bg-white min-h-screen flex flex-col items-spread gap-4 py-8 rounded-r-lg ${!buffer?'fixed z-10':'opacity-0'}`}>
-            <div className="flex gap-2 items-center justify-center px-4">
+        <div className={`col-span-1 bg-white h-fit flex flex-col items-spread gap-4 py-8 rounded-2xl sticky top-0`}>
+            <div className="flex gap-2 items-center justify-center px-4 mb-12">
                 <img className="w-8" src='/elevated_logo.png' alt='logo'></img>
                 <p className="text-2xl font-bold text-green-full">Elevat.ed</p>
             </div>
-
-            <img src='profile.png' className="w-16 mx-auto"></img>
 
             <nav className="flex flex-col">
                 {menuItems.map((item) => (
@@ -43,11 +41,11 @@ const Sidebar = ({ selected, setSelected, buffer=false }) => {
                 ))}
             </nav>
 
-            <div className="flex items-center gap-3 p-3 pl-8 rounded-lg cursor-pointer text-red-500 hover:bg-red-100 mt-auto"
+            {/* <div className="flex items-center gap-3 p-3 pl-8 rounded-lg cursor-pointer text-red-500 hover:bg-red-100 mt-auto"
                 onClick={signOut}>
                 <LogOut size={20} />
                 <span>Sign Out</span>
-            </div>
+            </div> */}
 
         </div>
     );
