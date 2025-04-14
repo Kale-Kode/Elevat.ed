@@ -7,6 +7,7 @@ import ProfileSidebar from '../components/profileSidebar';
 import Home from '../components/screens/home';
 import Cas from '../components/screens/cas'
 import Opportunities from '../components/screens/opportunities';
+import Project from '../components/screens/project';
 
 const Dashboard = () => {
   const [selected, setSelected] = useState('home');
@@ -55,15 +56,15 @@ const Dashboard = () => {
       case 'learn':
         return <div>learn View</div>;
       case 'project':
-        return <div>project View</div>;
+        return <Project />;
       case 'cas':
         return <Cas />;
       case 'trackr':
         return <Opportunities />;
       case 'mentors':
         return <div>mentors View</div>;
-      case 'settings':
-        return <div>settings View</div>;
+      case 'leaderboard':
+        return <div>leaderboard View</div>;
     }
   }
 

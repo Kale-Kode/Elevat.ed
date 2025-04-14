@@ -1,4 +1,4 @@
-import { Home, BookOpen, Briefcase, Activity, Bookmark, Users, Settings, LogOut } from "lucide-react";
+import { Home, BookOpen, Briefcase, Activity, Bookmark, Users, AlignEndHorizontal } from "lucide-react";
 import { supabase } from "../integrations/supabase/client";
 
 const Sidebar = ({ selected, setSelected, buffer=false }) => {
@@ -10,7 +10,7 @@ const Sidebar = ({ selected, setSelected, buffer=false }) => {
         { id: "cas", label: "CAS", icon: <Activity size={20} /> },
         { id: "trackr", label: "Trackr", icon: <Bookmark size={20} /> },
         { id: "mentors", label: "Mentors", icon: <Users size={20} /> },
-        { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+        { id: "leaderboard", label: "Leaderboard", icon: <AlignEndHorizontal size={20} /> },
     ];
 
     async function signOut() {
@@ -31,7 +31,7 @@ const Sidebar = ({ selected, setSelected, buffer=false }) => {
                 {menuItems.map((item) => (
                 <div
                     key={item.id}
-                    className={`flex items-center gap-3 w-full pl-8 p-3 cursor-pointer hover:bg-blue-light transition-all ${
+                    className={`flex items-center gap-3 w-full pl-6 p-3 cursor-pointer hover:bg-blue-light transition-all ${
                     selected === item.id ? "bg-blue-light text-blue-full border-l-4 border-blue-full" : "text-gray-600"
                     }`}
                     onClick={() => setSelected(item.id)}>
