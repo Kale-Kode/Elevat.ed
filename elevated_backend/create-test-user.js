@@ -8,10 +8,27 @@ const supabaseUrl = 'https://txgfvqffljglhgfwrwxn.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-async function createTestUser() {
-    const email = 'testuser@example.com';
-    const password = 'qWiEan821n_12ujAc';
+const test_users = [
+    {
+        email: 'testuser2@example.com',
+        password: 'qansc9q*!UIASN'
+    },
+    {
+        email: 'testuser3@example.com',
+        password: 'KOkas9(N)AwsA'
+    },
+    {
+        email: 'testuser4@example.com',
+        password: 'AS%^7dc&Ascasd'
+    },
+    {
+        email: 'testuser5@example.com',
+        password: 'asdjnasd-A&aisbc'
+    }]
 
+test_users.forEach(user => createTestUser(user))
+
+async function createTestUser( { email, password } ) {
     // // Delete existing test user
     // const { delete_data, delete_error } = await supabaseAdmin.auth.admin.deleteUser('9bb60364-f879-4f69-895c-3b7effe1e2ad');
     // if (delete_error) {
@@ -30,6 +47,7 @@ async function createTestUser() {
     // }
 
     // Create a new user in Auth.users
+    email = email.toLowerCase()
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
@@ -57,6 +75,7 @@ async function createTestUser() {
     {
     user_id: newUserId,
     name: 'Test User',
+    email: email,
     role: 'Student',
     created_at: new Date()
     },
@@ -68,7 +87,7 @@ async function createTestUser() {
     }
 
     // get profile_id from new User record
-    const { data: profileIdData, error: profileIdError } = await supabase
+    const { data: profileIdData, error: profileIdError } = await supabaseAdmin
           .from("Users")
           .select("profile_id")
           .eq("user_id", newUserId)
@@ -95,5 +114,3 @@ async function createTestUser() {
     }
 
 }
-
-createTestUser();

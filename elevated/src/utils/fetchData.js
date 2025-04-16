@@ -1,5 +1,35 @@
 import { supabase } from "../integrations/supabase/client"; // Supabase client
 
+export const select = async (table, field, eq, eqVal) => {
+    const { data, error } = await supabase
+        .from(table)
+        .select(field)
+        .eq(eq, eqVal);
+
+    if (error) throw error;
+    return data;
+}
+
+export const selectSingle = async (table, field, eq, eqVal) => {
+    const { data, error } = await supabase
+        .from(table)
+        .select(field)
+        .eq(eq, eqVal)
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+export const selectLike = async (table, field, like, likeVal) => {
+    const { data, error } = await supabase
+        .from(table)
+        .select(field)
+        .ilike(like, `%${likeVal}%`)
+
+    if (error) throw error;
+    return data;
+}
 
 // Auth.User
 export const getUserId = async () => {

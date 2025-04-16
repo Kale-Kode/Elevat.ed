@@ -1,55 +1,121 @@
 import { useEffect, useState } from "react"
 import React from 'react'
 import ProjectDashboard from "../projectDashboard"
+import * as fetchData from "../../utils/fetchData"
+import { supabase } from "../../integrations/supabase/client"; 
 
 const Project = () => {
     // screen states
-    const [isLocked, setIsLocked] = useState(false)
-    const [projectExists, setProjectExists] = useState(false)
+    const [isLocked, setIsLocked] = useState(async () => {
+        const userId = await fetchData.getUserId()
+        const data = await fetchData.selectSingle("Users", "training_completed", "user_id", userId);
+        setIsLocked(!data.training_completed) // create project screen is locked if training is not yet complete
+    })
+    const [project, setProject] = useState(null)
+    useEffect(() => {
+        const retrieveProject = async () => {
+            const userId = await fetchData.getUserId()
+            const profileId = await fetchData.getProfileId(userId)
+            // check if there exists a row in project_members with profile_id = user's profile_id
+            const data = await fetchData.select("Project_members", "*", "profile_id", profileId);
+            if (data.length > 0) {
+                // for each row, check that the corresponding project is currently active 
+                // (assuming max 1 project will be active for any user at any given time)
+                let found = false
+                data.forEach(membership => {
+                    const verifyProject = async () => { 
+                        const projectData = await fetchData.selectSingle("Projects", "*", "project_id", membership.project_id);
+                        if (projectData.active) {
+                            found = true;
+                            setProject(projectData) // set project to display as the project record from DB
+                        }
+                    }
+                    verifyProject();
+                    if (found) {
+                        return;
+                    }
+                })
+            }
+        }
+        retrieveProject()
+    }, [])
+
     // create project popup states
     const [openPopup, setOpenPopup] = useState(false)
     const [description, setDescription] = useState('');
     const [ngoName, setNgoName] = useState('');
     const [projectTitle, setProjectTitle] = useState('');
     const [members, setMembers] = useState([]);
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Handle form submission here
-        console.log({ description, ngoName, projectTitle, members });
+        // post new project record to Projects Table
+        const { data, error } = await supabase
+            .from('Projects')
+            .upsert({ 
+                project_name: projectTitle,
+                project_description: description,
+                project_ngo: ngoName,
+                created_at: new Date()
+            })
+            .select()
+        if (error) throw error;
+        setProject(data) // project record to display
+        // add each memmber record to Project_members table
+        members.forEach(async (member) => {
+            const memberProfileId = await fetchData.getProfileId(member.id)
+            const { error } = await supabase
+                .from('Project_members')
+                .upsert({ 
+                    project_id: data[0].project_id,
+                    profile_id: memberProfileId
+                })
+            if (error) throw error;
+        })
+        // also insert the current user themselves as a member
+        const userId = await fetchData.getUserId()
+        const profileId = await fetchData.getProfileId(userId)
+        const { anotherError } = await supabase
+            .from('Project_members')
+            .upsert({ 
+                project_id: data[0].project_id,
+                profile_id: profileId
+            })
+        if (anotherError) throw anotherError;
+
         setOpenPopup(false) // close popup
-        setProjectExists(true) // show the new project display
     };
+
     // invite members popup states
     const [showInvitePopup, setShowInvitePopup] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [invited, setInvited] = useState([]);
-    const mockUsers = [ // dummy test user data
-        { id: 1, name: 'Alice Johnson', email: 'alice@example.com' },
-        { id: 2, name: 'Bob Smith', email: 'bob@example.com' },
-        { id: 3, name: 'Clara Lee', email: 'clara@example.com' },
-        { id: 4, name: 'David Chen', email: 'david@example.com' },
-        { id: 5, name: 'Emily Green', email: 'emily@example.com' },
-        { id: 6, name: 'John Sachs', email: 'john@example.com' },
-        { id: 7, name: 'Anna Nachuta', email: 'anna@example.com' }
-      ];
-    const filteredUsers = mockUsers.filter(
-        (user) =>
-          ( user.email.toLowerCase().includes(searchTerm.toLowerCase()) || user.name.toLowerCase().includes(searchTerm.toLowerCase()) ) && !invited.includes(user.id)
-      );
-      const handleInvite = (userId, name) => {
+    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    useEffect(() => {
+        const searchUsers = async () => {
+            setIsSearching(true);
+            const userId = await fetchData.getUserId()
+            const data = await fetchData.selectLike("Users", "*", "email", searchTerm);
+            const filtered = data.filter((user) => !invited.includes(user.user_id) && user.user_id != userId);
+            setFilteredUsers(filtered);
+            setIsSearching(false);
+        }
+        searchUsers();
+    }, [searchTerm, invited])
+    const handleInvite = (userId, name) => {
         setInvited([...invited, userId]);
         setMembers([...members, { id: userId, name: name, accepted: false}]);   
-      };
+    };
 
     return (
         <div className="w-full min-h-full flex items-center justify-center">
-            {projectExists ? <div className="w-full h-full self-start">
-                <ProjectDashboard />
+            {project != null ? <div className="w-full h-full self-start">
+                <ProjectDashboard project={project}/>
             </div>
             : isLocked 
             ? <div className="max-w-[40vw] h-full flex flex-col items-center justify-center gap-2">
                 <h1 className='text-2xl font-bold'>You’re almost there</h1>
-                <p className='text-green-med-dark text-center'>Please complete the training phase before you move onto your project. Once you’ve done that, the fun part starts!</p>
+                <p className='text-green-med-dark text-center'>Please complete all the training materials before you move onto your project. Once you’ve done that, the fun part starts!</p>
                 <button className="mt-4 bg-gray-400 text-white py-2 px-6 rounded-full">Create Project 🔒</button>
             </div> 
             : <div className="max-w-[40vw] h-full flex flex-col items-center justify-center gap-2">
@@ -151,11 +217,12 @@ const Project = () => {
                                 />
 
                                 <ul className="space-y-2 max-h-60 overflow-y-auto">
-                                {searchTerm.length == 0 ? <p className="text-gray-500 text-sm text-center">Please enter an email</p>
+                                {searchTerm.length == 0 ? <p className="text-gray-500 text-sm text-center">Please enter a name or email</p>
+                                : isSearching ? <p className="text-gray-500 text-sm text-center">Searching...</p>
                                 : filteredUsers.length > 0 ? (
                                     filteredUsers.map((user) => (
                                     <li
-                                        key={user.id}
+                                        key={user.user_id}
                                         className="flex justify-between items-center p-2 border border-gray-200 rounded-md"
                                     >
                                         <div>
@@ -163,7 +230,7 @@ const Project = () => {
                                         <p className="text-sm text-gray-600">{user.email}</p>
                                         </div>
                                         <button
-                                        onClick={() => handleInvite(user.id, user.name)}
+                                        onClick={() => handleInvite(user.user_id, user.name)}
                                         className="bg-green-full text-white px-3 py-1 rounded-md hover:bg-green-full"
                                         >
                                         Invite

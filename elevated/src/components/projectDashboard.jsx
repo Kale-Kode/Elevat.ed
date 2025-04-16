@@ -39,7 +39,16 @@ const DroppableColumn = ({ id, title, count, color, children }) => {
   );
 };
 
-const ProjectDashboard = () => {
+const ProjectDashboard = ( { project } ) => {
+  // store project states below
+  //... const [first, setfirst] = useState(second)
+  useEffect(() => {
+    const fetchProjectData = async () => {
+      // fetch members, tasks, chat messages etc here and store in states above
+    }
+    fetchProjectData()
+  }, [])
+
   const [columns, setColumns] = React.useState({
     todo: ['task-1', 'task-2'],
     inprogress: [],
@@ -112,11 +121,11 @@ const ProjectDashboard = () => {
           </button>
           <div className="bg-white p-4 rounded-xl shadow mb-6">
             <h2 className="text-xl font-semibold">
-              CAS project for Macmillan Cancer Awareness
+              {project.project_name}
             </h2>
-            <p className="text-sm mt-1"><strong>NGO:</strong> Macmillan Cancer Awareness</p>
+            <p className="text-sm mt-1"><strong>NGO:</strong> {project.project_ngo}</p>
             <p className="mt-2 text-sm text-gray-700">
-              <strong>Description:</strong> creating a detailed donor breakdown for Macmillan Cancer Awareness, organizing key information like donation history and engagement, and sending out personalized weekly newsletters.
+              <strong>Description:</strong> {project.project_description}
             </p>
             <p className="mt-2 text-sm">
               <strong>Upcoming deadline:</strong> Mid-term presentation <span className="text-green-full font-semibold">due 25/05/25</span>
