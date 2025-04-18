@@ -3,6 +3,8 @@ import { DndContext } from '@dnd-kit/core';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { SquarePen, SendHorizontal } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import * as fetchData from "../utils/fetchData"
+import CreateTaskPopup from './createTaskPopup';
 
 const DraggableCard = ({ id, children }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
@@ -41,10 +43,23 @@ const DroppableColumn = ({ id, title, count, color, children }) => {
 
 const ProjectDashboard = ( { project } ) => {
   // store project states below
-  //... const [first, setfirst] = useState(second)
+  const [teamMembers, setTeamMembers] = useState([])
+  const [projectTasks, setProjectTasks] = useState([])
+  const [openPopup, setOpenPopup] = useState(false)
+  // fetch members, tasks, chat messages etc here and store in states above
   useEffect(() => {
     const fetchProjectData = async () => {
-      // fetch members, tasks, chat messages etc here and store in states above
+      // fetch members
+      const teamMembers = await fetchData.select("Project_members", "*", "project_id", project.project_id)
+      const memberProfiles = await Promise.all(teamMembers.map(async (member) => ({
+        member: member,
+        profile: await fetchData.selectSingle("Users", "*", "profile_id", member.profile_id),
+      })))
+      console.log(memberProfiles)
+      setTeamMembers(memberProfiles)
+      // fetch tasks
+      const projectTasks = await fetchData.select("Project_tasks", "*", "project_id", project.project_id)
+      setProjectTasks(projectTasks)
     }
     fetchProjectData()
   }, [])
@@ -113,6 +128,8 @@ const ProjectDashboard = ( { project } ) => {
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div className="flex flex-col md:flex-row gap-6 h-screen font-sans">
+        {openPopup && <CreateTaskPopup onClose={() => setOpenPopup(false)} teamMembers={teamMembers} project={project}
+          />}
         {/* Left Section */}
         <div className="flex-1 flex flex-col relative">
           {/* Project Info */}
@@ -136,7 +153,7 @@ const ProjectDashboard = ( { project } ) => {
           <div className="bg-white p-4 rounded-xl shadow flex-1 flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Project Tasks</h3>
-              <button className="bg-green-full text-white text-sm px-4 py-1 rounded-full hover:bg-green-full/75">Create Task +</button>
+              <button className="bg-green-full text-white text-sm px-4 py-1 rounded-full hover:bg-green-full/75" onClick={() => setOpenPopup(true)}>Create Task +</button>
             </div>
 
             <div className="grid md:grid-cols-3 gap-4 flex-1">
