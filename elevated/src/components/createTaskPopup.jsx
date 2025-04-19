@@ -19,7 +19,7 @@ const MenuProps = {
   },
 };
 
-const CreateTaskPopup = ({ onClose, teamMembers, project }) => {
+const CreateTaskPopup = ({ onClose, teamMembers, project, setColumns }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [priority, setPriority] = useState('Low');
@@ -31,6 +31,7 @@ const CreateTaskPopup = ({ onClose, teamMembers, project }) => {
       e.preventDefault();
       const newTask = { title, description, priority, assignees, dueDate };
       console.log('New Task:', newTask);
+      // then insert to DB
       const { data: taskData, error } = await supabase
           .from('Project_tasks')
           .upsert({ 
@@ -45,6 +46,14 @@ const CreateTaskPopup = ({ onClose, teamMembers, project }) => {
           .select()
       if (error) throw error;
       else console.log('new task added to table: ', taskData)
+      // and render on screen
+      setColumns((prevColumns) => {
+        return {
+          ...prevColumns,
+          ['todo']: [...prevColumns['todo'], taskData[0]], // Append new task
+        };
+      })
+
       const newTaskId = taskData?.[0]?.task_id;
       assignees.forEach(async (assignee) => {
           const { data: assigneeData, error } = await supabase
@@ -141,34 +150,6 @@ const CreateTaskPopup = ({ onClose, teamMembers, project }) => {
                 ))}
                 </Select>
             </FormControl>
-              {/* <select
-                multiple
-                className="w-full p-3 bg-green-light shadow-sm border-none rounded-md focus:outline-none focus:ring-2 focus:ring-green-full"
-                value={assignees}
-                onChange={(e) =>
-                    setAssignees(Array.from(e.target.selectedOptions, (option) => option.value))
-                }
-              >
-                {teamMembers.map((member) => (
-                  <option key={member.profile.profile_id} value={member.member.project_member_id}>
-                    {member.profile.name}
-                  </option>
-                ))}
-              </select> */}
-              {/* <div className="flex gap-2 mt-3 flex-wrap">
-                {teamMembers
-                    .filter((member) => assignees.includes(member.member.project_member_id))
-                    .map((member) => (
-                    <div key={member.profile.profile_id} className="flex items-center gap-2">
-                        <img
-                        src={member.profile.pfp || "https://via.placeholder.com/40"}
-                        alt={member.profile.name}
-                        className="w-8 h-8 rounded-full border"
-                        />
-                        <span className="text-sm">{member.profile.name}</span>
-                    </div>
-                    ))}
-                </div> */}
             </div>
   
             <div>

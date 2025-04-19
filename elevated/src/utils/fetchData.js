@@ -31,6 +31,14 @@ export const selectLike = async (table, field, like, likeVal) => {
     return data;
 }
 
+export const update = async (table, data, eq, eqVal) => {
+    const { error } = await supabase
+        .from(table)
+        .update(data)
+        .eq(eq, eqVal);
+    if (error) throw error;
+};
+
 // Auth.User
 export const getUserId = async () => {
     const { data: { session } } = await supabase.auth.getSession();

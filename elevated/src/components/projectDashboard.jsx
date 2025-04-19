@@ -5,6 +5,7 @@ import { SquarePen, SendHorizontal } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import * as fetchData from "../utils/fetchData"
 import CreateTaskPopup from './createTaskPopup';
+import TaskCard from './taskCard';
 
 const DraggableCard = ({ id, children }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
@@ -44,12 +45,18 @@ const DroppableColumn = ({ id, title, count, color, children }) => {
 const ProjectDashboard = ( { project } ) => {
   // store project states below
   const [teamMembers, setTeamMembers] = useState([])
-  const [projectTasks, setProjectTasks] = useState([])
   const [openPopup, setOpenPopup] = useState(false)
+  // task stored here in lists
+  const [columns, setColumns] = React.useState({
+    todo: [],
+    inprogress: [],
+    done: [],
+  });
+
   // fetch members, tasks, chat messages etc here and store in states above
   useEffect(() => {
     const fetchProjectData = async () => {
-      // fetch members
+      // fetch MEMBERS
       const teamMembers = await fetchData.select("Project_members", "*", "project_id", project.project_id)
       const memberProfiles = await Promise.all(teamMembers.map(async (member) => ({
         member: member,
@@ -57,63 +64,65 @@ const ProjectDashboard = ( { project } ) => {
       })))
       console.log(memberProfiles)
       setTeamMembers(memberProfiles)
-      // fetch tasks
-      const projectTasks = await fetchData.select("Project_tasks", "*", "project_id", project.project_id)
-      setProjectTasks(projectTasks)
+
+      // fetch TASKS
+      const projectTasksData = await fetchData.select("Project_tasks", "*", "project_id", project.project_id)
+      console.log(projectTasksData)
+      // Create a copy of the empty columns on component mount
+      const updatedColumns = {
+        todo: [],
+        inprogress: [],
+        done: [],
+      };
+      // Fill the correct arrays
+      projectTasksData.forEach(task => {
+        if (task.status in updatedColumns) { // prevent errors
+          updatedColumns[task.status].push(task);
+        }
+      });
+      // update state once
+      setColumns(updatedColumns);
     }
     fetchProjectData()
   }, [])
-
-  const [columns, setColumns] = React.useState({
-    todo: ['task-1', 'task-2'],
-    inprogress: [],
-    done: ['task-3'],
-  });
-
-  const taskContent = {
-    'task-1': {
-      priority: 'Medium',
-      text: 'Donor Breakdown',
-      description: 'Organise a spreadsheet of donor history and engagement.',
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-500/10'
-    },
-    'task-2': {
-      priority: 'Urgent',
-      text: 'Brainstorming',
-      description: 'How do we nurture relationships with donors with the newsletter?',
-      color: 'text-red-500',
-      bgColor: 'bg-red-500/10'
-    },
-    'task-3': {
-      priority: 'Low',
-      text: 'Everyone introduce yourselves! :)',
-      description: '',
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-600/10'
-    }
-  };
 
   const handleDragEnd = ({ active, over }) => {
     if (!over) return;
 
     const sourceCol = Object.keys(columns).find((colId) =>
-      columns[colId].includes(active.id)
+      columns[colId].some((task) => task.task_id === active.id)
     );
 
     const destinationCol = over.id;
 
     if (sourceCol && destinationCol && sourceCol !== destinationCol) {
       setColumns((prev) => {
-        const newSource = prev[sourceCol].filter((id) => id !== active.id);
-        const newDestination = [...prev[destinationCol], active.id];
-
+        // update local state
+        const taskToMove = prev[sourceCol].find((task) => task.task_id === active.id);
+        if (!taskToMove) return prev;
+      
+        const newSource = prev[sourceCol].filter((task) => task.task_id !== active.id);
+        const newDestination = [...prev[destinationCol], taskToMove];
+      
         return {
           ...prev,
           [sourceCol]: newSource,
           [destinationCol]: newDestination,
         };
       });
+
+      const updateStatus = async () => {
+        console.log('status destination: ', destinationCol, 'for task: ', active.id)
+        const taskToUpdate = columns[sourceCol].find(task => task.task_id === active.id);
+        if (!taskToUpdate) return;
+        try {
+          // Update the status in Supabase
+          await fetchData.update("Project_tasks", { status: destinationCol }, "task_id", active.id);
+        } catch (error) {
+          console.error("Failed to update task status in Supabase:", error);
+        }
+      }
+      updateStatus()
     }
   };
 
@@ -128,7 +137,7 @@ const ProjectDashboard = ( { project } ) => {
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div className="flex flex-col md:flex-row gap-6 h-screen font-sans">
-        {openPopup && <CreateTaskPopup onClose={() => setOpenPopup(false)} teamMembers={teamMembers} project={project}
+        {openPopup && <CreateTaskPopup onClose={() => setOpenPopup(false)} teamMembers={teamMembers} project={project} setColumns={setColumns}
           />}
         {/* Left Section */}
         <div className="flex-1 flex flex-col relative">
@@ -156,7 +165,7 @@ const ProjectDashboard = ( { project } ) => {
               <button className="bg-green-full text-white text-sm px-4 py-1 rounded-full hover:bg-green-full/75" onClick={() => setOpenPopup(true)}>Create Task +</button>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4 flex-1">
+            <div className="grid md:grid-cols-3 gap-2 flex-1">
               {['todo', 'inprogress', 'done'].map((columnId) => {
                 const columnTitle = {
                   todo: 'To Do',
@@ -179,14 +188,8 @@ const ProjectDashboard = ( { project } ) => {
                     color={columnColor}
                     className='overflow-y-auto'
                   >
-                    {columns[columnId].map((taskId) => (
-                      <DraggableCard id={taskId} key={taskId}>
-                        <div className={`text-xs ${taskContent[taskId].color} ${taskContent[taskId].bgColor} w-fit px-2 py-1 rounded-md font-semibold mb-1`}>
-                          {taskContent[taskId].priority}
-                        </div>
-                        <p className="font-semibold text-sm">{taskContent[taskId].text}</p>
-                        <p className="text-xs text-gray-500">{taskContent[taskId].description}</p>
-                      </DraggableCard>
+                    {columns[columnId].map((task) => (
+                      <TaskCard task={task}/>
                     ))}
                   </DroppableColumn>
                 );
